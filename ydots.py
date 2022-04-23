@@ -27,7 +27,7 @@ class File:
             self.toParse = False
         else:
             self.path = full_path(path.join(sourceDir, yaml['source']))
-            self.targetPath = full_path(path.join(targetDir, yaml.get('source', yaml['source'])))
+            self.targetPath = full_path(path.join(targetDir, yaml.get('target', yaml['source'])))
             self.toParse = yaml.get('parse', False)
         self.mkdir()
 
@@ -38,7 +38,6 @@ class File:
             return self.link()
 
     def parse(self, variables):
-        print(f'Parsing {self.path}')
         try:
             with open(self.path, 'r') as f:
                 content = f.read()
@@ -52,14 +51,12 @@ class File:
             return False
 
     def link(self):
-        print(f'Linking {self.path}')
         res = system('ln -sfn ' + self.path + ' ' + self.targetPath)
         return (res == 0)
 
     def mkdir(self):
         dirName = path.dirname(self.targetPath)
         if not path.exists(dirName):
-            print('Creating target directory %s' % dirName)
             res = system('mkdir -p %s' % dirName)
             return (res == 0)
         return True
@@ -108,8 +105,9 @@ class Module:
     
     def link(self, variables):
         if self.files == []:
-                return File(f'{self.sourcePath}/',
-                        f'{self.targetPath}').link()
+            system('mkdir -p %s' % self.targetPath)
+            return File(f'{self.sourcePath}/*',
+                    f'{self.targetPath}').link()
         for yaml in self.files:
             file = File(self.sourcePath, self.targetPath, yaml)
             if not file.manage(variables):
@@ -129,13 +127,15 @@ def main():
     args = parser.parse_args()
     config_file = args.c or config_path()
     config = get_config(config_file)
-    modules = [Module(name, config['modules'][name]) for name in config['modules']]
-    for module in modules:
-        if module.enabled:
-            if not args.i or module.install(config['global']):
-                if module.link(config['variables']):
-                    if module.run_custom_steps():
-                        print('Module %s successfully installed' % module.name)
+    modules = [Module(name, config['modules'][name]) for name in config['modules'] if config['modules'][name].get('enabled', True)]
+    n = len(modules)
+    for i in range(n):
+        module = modules[i]
+        print(f"\r[{i+1}/{n}] {module.name}", end='')
+        if not args.i or module.install(config['global']):
+            if module.link(config['variables']):
+                if module.run_custom_steps():
+                    print(' OK')
                     
 
 if __name__ == "__main__":
