@@ -1,0 +1,5 @@
+config.yaml
+
+build/ydots
+dist
+ydots.spec
