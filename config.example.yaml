@@ -29,8 +29,8 @@ modules: # List of modules
     packageName: ydots # system package name. Default: None
     dependencies: [] # List of system dependencies. Default: []
     files: # List of files to be linked or parsed. Default: whole directory
-      - path: ydots.yaml # file path
-        targetPath: config.yaml # target path of specific file in module targetPath
+      - source: ydots.yaml # file path
+        target: config.yaml # target path of specific file in module targetPath
         parse: false # Whether this file needs to be parsed or not. Default: false
 
     customSteps: [] # List of custom commands to run before installing config
