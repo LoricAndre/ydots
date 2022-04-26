@@ -32,6 +32,7 @@ class File:
         self.mkdir()
 
     def manage(self, variables):
+        self.rm()
         if self.toParse:
             return self.parse(variables)
         else:
@@ -60,7 +61,14 @@ class File:
             res = system('mkdir -p %s' % dirName)
             return (res == 0)
         return True
-
+    
+    def rm(self, force=False):
+        if path.exists(self.targetPath):
+            if force:
+                system('rm -f %s' % self.targetPath)
+            else:
+                system('rm %s' % self.targetPath)
+        return True
 
 class Module:
     def __init__(self, name, yaml):
